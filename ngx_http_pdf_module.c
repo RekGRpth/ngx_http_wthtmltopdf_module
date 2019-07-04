@@ -11,8 +11,8 @@ typedef struct {
 ngx_module_t ngx_http_pdf_module;
 
 static void HPDF_STDCALL error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void *user_data) {
-    ngx_http_request_t *r = user_data;
-    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "libharu: error_no=%04X, detail_no=%d\n", (unsigned int) error_no, (int) detail_no);
+    ngx_log_t *log = user_data;
+    ngx_log_error(NGX_LOG_ERR, log, 0, "libharu: error_no=%04X, detail_no=%d\n", (unsigned int) error_no, (int) detail_no);
 }
 
 static ngx_int_t ngx_http_pdf_handler(ngx_http_request_t *r) {
@@ -20,7 +20,7 @@ static ngx_int_t ngx_http_pdf_handler(ngx_http_request_t *r) {
     if (!(r->method & NGX_HTTP_GET)) return NGX_HTTP_NOT_ALLOWED;
     ngx_int_t rc = ngx_http_discard_request_body(r);
     if (rc != NGX_OK && rc != NGX_AGAIN) return rc;
-    HPDF_Doc pdf = HPDF_New(error_handler, r);
+    HPDF_Doc pdf = HPDF_New(error_handler, r->connection->log);
     if (!pdf) return NGX_ERROR;
     rc = NGX_ERROR;
     if (HPDF_UseUTFEncodings(pdf) != HPDF_OK) goto err;
