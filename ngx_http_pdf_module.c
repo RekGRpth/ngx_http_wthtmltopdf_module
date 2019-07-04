@@ -25,7 +25,7 @@ static ngx_int_t ngx_http_pdf_handler(ngx_http_request_t *r) {
     rc = NGX_ERROR;
     if (HPDF_UseUTFEncodings(pdf) != HPDF_OK) goto err;
     HPDF_Page page = HPDF_AddPage(pdf);
-    if (!page/* || page == HPDF_INVALID_DOCUMENT || page == HPDF_FAILD_TO_ALLOC_MEM*/) goto err;
+    if (!page) goto err;
     if (HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT) != HPDF_OK) goto err;
     MyWPdfRenderer_render("<p style=\"background-color: #c11\">Hello, world !</p>", pdf, page);
     if (HPDF_SaveToStream(pdf) != HPDF_OK) goto err;
@@ -39,7 +39,6 @@ static ngx_int_t ngx_http_pdf_handler(ngx_http_request_t *r) {
     r->headers_out.status = NGX_HTTP_OK;
     r->headers_out.content_length_n = size;
     rc = ngx_http_send_header(r);
-//    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "rc = %i", rc);
     if (rc == NGX_ERROR || rc > NGX_OK || r->header_only); else rc = ngx_http_output_filter(r, &out);
 err:
     HPDF_Free(pdf);
