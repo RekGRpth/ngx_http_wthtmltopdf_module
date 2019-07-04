@@ -92,6 +92,7 @@ static ngx_int_t ngx_http_pdf_html_read(ngx_http_request_t *r, ngx_chain_t *in) 
     }
     for (ngx_chain_t *cl = in; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ngx_buf_in_memory = %s", ngx_buf_in_memory(b) ? "true" : "false");
         size_t size = ngx_buf_size(b);
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html size = %uz", size);
         size_t rest = ctx->data + ctx->len - ctx->last;
