@@ -83,6 +83,7 @@ ngx_http_next_header_filter:
 }
 
 static ngx_int_t ngx_http_pdf_html_read(ngx_http_request_t *r, ngx_chain_t *in) {
+    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pdf html read");
     ngx_http_pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_pdf_module);
     if (!ctx->data) {
         ctx->data = ngx_palloc(r->pool, ctx->len);
@@ -111,6 +112,7 @@ static void HPDF_STDCALL error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_
 }
 
 static ngx_buf_t *ngx_http_pdf_html_process(ngx_http_request_t *r) {
+    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pdf html process");
     r->connection->buffered &= ~NGX_HTTP_HTML_BUFFERED;
     ngx_buf_t *out = NULL;
     ngx_http_pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_pdf_module);
@@ -148,6 +150,7 @@ ret:
 }
 
 static ngx_int_t ngx_http_pdf_html_send(ngx_http_request_t *r, ngx_chain_t *in) {
+    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pdf html send");
     ngx_int_t rc = ngx_http_next_header_filter(r);
     if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) return NGX_ERROR;
     rc = ngx_http_next_body_filter(r, in);
