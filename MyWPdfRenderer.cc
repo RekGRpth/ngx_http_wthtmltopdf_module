@@ -20,7 +20,10 @@ private:
 extern "C" {
     ngx_int_t MyWPdfRenderer_render(ngx_log_t *log, HPDF_Doc pdf, HPDF_Page page, const char *html) {
         try {
-            Wt::Render::WPdfRenderer(pdf, page).render(html);
+            Wt::Render::WPdfRenderer renderer(pdf, page);
+            renderer.setMargin(2.54);
+            renderer.setDpi(96);
+            renderer.render(html);
             return NGX_DONE;
         } catch (const Wt::rapidxml::parse_error &e) {
             ngx_log_error(NGX_LOG_ERR, log, 0, "wt exception: what = %s, where = %s,", e.what(), e.where<char>());
