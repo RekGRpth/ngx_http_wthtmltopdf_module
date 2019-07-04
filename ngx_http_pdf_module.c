@@ -21,14 +21,13 @@ static ngx_int_t ngx_http_pdf_handler(ngx_http_request_t *r) {
     ngx_int_t rc = ngx_http_discard_request_body(r);
     if (rc != NGX_OK && rc != NGX_AGAIN) return rc;
     HPDF_Doc pdf = HPDF_New(error_handler, r->connection->log);
-    if (!pdf) return NGX_ERROR;
-    rc = NGX_ERROR;
+    if (!pdf) return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    rc = NGX_HTTP_INTERNAL_SERVER_ERROR;
     if (HPDF_UseUTFEncodings(pdf) != HPDF_OK) goto err;
     HPDF_Page page = HPDF_AddPage(pdf);
     if (!page) goto err;
     if (HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT) != HPDF_OK) goto err;
-    rc = MyWPdfRenderer_render(r->connection->log, pdf, page, "a<p style=\"background-color: #c11\">Hello, world !</p>");
-    if (rc != NGX_OK) goto err;
+    if (MyWPdfRenderer_render(r->connection->log, pdf, page, "<p style=\"background-color: #c11\">Hello, world !</p>") != NGX_DONE) goto err;
     if (HPDF_SaveToStream(pdf) != HPDF_OK) goto err;
     HPDF_UINT32 size = HPDF_GetStreamSize(pdf);
     if (!size) goto err;
