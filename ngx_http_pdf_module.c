@@ -86,7 +86,7 @@ static ngx_int_t ngx_http_pdf_html_read(ngx_http_request_t *r, ngx_chain_t *in) 
     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pdf html read");
     ngx_http_pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_pdf_module);
     if (!ctx->data) {
-        ctx->data = ngx_palloc(r->pool, ctx->len);
+        ctx->data = ngx_pcalloc(r->pool, ctx->len + 1);
         if (!ctx->data) return NGX_ERROR;
         ctx->last = ctx->data;
     }
@@ -116,17 +116,14 @@ static ngx_buf_t *ngx_http_pdf_html_process(ngx_http_request_t *r) {
     r->connection->buffered &= ~NGX_HTTP_HTML_BUFFERED;
     ngx_buf_t *out = NULL;
     ngx_http_pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_pdf_module);
-    char *html = ngx_pcalloc(r->pool, ctx->len + 1);
-    if (!html) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "!html"); goto ret; }
-    ngx_memcpy(html, ctx->data, ctx->len);
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html = %s", html);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html = %s", ctx->data);
     HPDF_Doc pdf = HPDF_New(error_handler, r->connection->log);
     if (!pdf) goto ret;
     if (HPDF_UseUTFEncodings(pdf) != HPDF_OK) goto HPDF_Free;
     HPDF_Page page = HPDF_AddPage(pdf);
     if (!page) goto HPDF_Free;
     if (HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT) != HPDF_OK) goto HPDF_Free;
-    if (MyWPdfRenderer_render(r->connection->log, pdf, page, html) != NGX_DONE) goto HPDF_Free;
+    if (MyWPdfRenderer_render(r->connection->log, pdf, page, (const char *)ctx->data) != NGX_DONE) goto HPDF_Free;
     if (HPDF_SaveToStream(pdf) != HPDF_OK) goto HPDF_Free;
     HPDF_UINT32 size = HPDF_GetStreamSize(pdf);
     if (!size) goto HPDF_Free;
