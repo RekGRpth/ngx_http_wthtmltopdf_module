@@ -27,7 +27,7 @@ static ngx_int_t ngx_http_pdf_handler(ngx_http_request_t *r) {
     HPDF_Page page = HPDF_AddPage(pdf);
     if (!page) goto err;
     if (HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT) != HPDF_OK) goto err;
-    MyWPdfRenderer_render("<p style=\"background-color: #c11\">Hello, world !</p>", pdf, page);
+    MyWPdfRenderer_render(pdf, page, "<p style=\"background-color: #c11\">Hello, world !</p>");
     if (HPDF_SaveToStream(pdf) != HPDF_OK) goto err;
     HPDF_UINT32 size = HPDF_GetStreamSize(pdf);
     if (!size) goto err;
