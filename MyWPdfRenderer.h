@@ -6,8 +6,9 @@ extern "C" {
 #endif
 
 #include <hpdf.h>
+#include <ngx_core.h>
 
-void MyWPdfRenderer_render(HPDF_Doc pdf, HPDF_Page page, const char *html);
+ngx_int_t MyWPdfRenderer_render(ngx_log_t *log, HPDF_Doc pdf, HPDF_Page page, const char *html);
 
 #ifdef __cplusplus
 }
