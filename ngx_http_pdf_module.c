@@ -92,15 +92,11 @@ static ngx_int_t ngx_http_pdf_html_read(ngx_http_request_t *r, ngx_chain_t *in) 
     }
     for (ngx_chain_t *cl = in; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
-//        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ngx_buf_in_memory = %s", ngx_buf_in_memory(b) ? "true" : "false");
         size_t size = ngx_buf_size(b);
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html size = %uz", size);
         size_t rest = ctx->data + ctx->len - ctx->last;
-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html rest = %uz", rest);
         if (size > rest) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "pdf filter: too big response"); return NGX_ERROR; }
-//        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "b->pos = %s", b->pos);
         ctx->last = ngx_cpymem(ctx->last, b->pos, size);
-//        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ctx->data = %s", ctx->data);
         if (b->last_buf) return NGX_OK;
     }
     r->connection->buffered |= NGX_HTTP_HTML_BUFFERED;
@@ -117,7 +113,6 @@ static ngx_buf_t *ngx_http_pdf_html_process(ngx_http_request_t *r) {
     r->connection->buffered &= ~NGX_HTTP_HTML_BUFFERED;
     ngx_buf_t *out = NULL;
     ngx_http_pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_pdf_module);
-//    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ctx->data = %s", ctx->data);
     HPDF_Doc pdf = HPDF_New(error_handler, r->connection->log);
     if (!pdf) goto ret;
     if (HPDF_UseUTFEncodings(pdf) != HPDF_OK) goto HPDF_Free;
