@@ -117,7 +117,7 @@ static ngx_buf_t *ngx_http_pdf_html_process(ngx_http_request_t *r) {
     r->connection->buffered &= ~NGX_HTTP_HTML_BUFFERED;
     ngx_buf_t *out = NULL;
     ngx_http_pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_pdf_module);
-//    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html = %s", ctx->data);
+//    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ctx->data = %s", ctx->data);
     HPDF_Doc pdf = HPDF_New(error_handler, r->connection->log);
     if (!pdf) goto ret;
     if (HPDF_UseUTFEncodings(pdf) != HPDF_OK) goto HPDF_Free;
