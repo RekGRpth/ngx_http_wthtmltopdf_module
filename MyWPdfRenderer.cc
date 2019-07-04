@@ -7,7 +7,9 @@ extern "C" {
             Wt::Render::WPdfRenderer(pdf, page).render(html);
             return NGX_OK;
         } catch (const std::exception &e) {
-            ngx_log_error(NGX_LOG_ERR, log, 0, "libharu: %s", e.what());
+            ngx_log_error(NGX_LOG_ERR, log, 0, "wt: %s", e.what());
+        } catch (...) {
+            ngx_log_error(NGX_LOG_ERR, log, 0, "wt: exception");
         }
         return NGX_ERROR;
     }
