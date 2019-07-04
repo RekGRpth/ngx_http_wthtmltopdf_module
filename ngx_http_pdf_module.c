@@ -85,24 +85,6 @@ ngx_http_next_header_filter:
 static ngx_int_t ngx_http_pdf_html_read(ngx_http_request_t *r, ngx_chain_t *in) {
     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pdf html read");
     ngx_http_pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_pdf_module);
-
-/*    ngx_buf_t *b = ctx->in;
-    if (!b->start) {
-        b->start = ngx_palloc(r->pool, conf->buffer_size);
-        if (!b->start) return NGX_ERROR;
-        b->end = b->start + conf->buffer_size;
-        b->pos = b->last = b->start;
-    }
-    for (cl = in; cl; cl = cl->next) {
-        ssize_t rest = b->end - b->last;
-        if (rest == 0) break;
-        if (!ngx_buf_in_memory(cl->buf)) continue;
-        len = cl->buf->last - cl->buf->pos;
-        if (len == 0) continue;
-        if (len > (size_t) rest) len = rest;
-        b->last = ngx_copy(b->last, cl->buf->pos, len);
-    }*/
-
     if (!ctx->data) {
         ctx->data = ngx_pcalloc(r->pool, ctx->len + 1);
         if (!ctx->data) return NGX_ERROR;
