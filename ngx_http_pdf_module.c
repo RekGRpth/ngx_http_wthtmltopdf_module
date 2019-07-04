@@ -94,12 +94,17 @@ static ngx_int_t ngx_http_pdf_html_read(ngx_http_request_t *r, ngx_chain_t *in) 
     for (ngx_chain_t *cl = in; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
         size_t size = b->last - b->pos;
-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html buf: %uz", size);
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html size = %uz", size);
         size_t rest = ctx->data + ctx->len - p;
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html rest = %uz", rest);
         if (size > rest) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "pdf filter: too big response"); return NGX_ERROR; }
         p = ngx_cpymem(p, b->pos, size);
         b->pos += size;
-        if (b->last_buf) { ctx->last = p; return NGX_OK; }
+        if (b->last_buf) {
+            ctx->last = p;
+            ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ctx->data = %s", ctx->data);
+            return NGX_OK;
+        }
     }
     ctx->last = p;
     r->connection->buffered |= NGX_HTTP_HTML_BUFFERED;
@@ -116,7 +121,7 @@ static ngx_buf_t *ngx_http_pdf_html_process(ngx_http_request_t *r) {
     r->connection->buffered &= ~NGX_HTTP_HTML_BUFFERED;
     ngx_buf_t *out = NULL;
     ngx_http_pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_pdf_module);
-    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html = %s", ctx->data);
+//    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html = %s", ctx->data);
     HPDF_Doc pdf = HPDF_New(error_handler, r->connection->log);
     if (!pdf) goto ret;
     if (HPDF_UseUTFEncodings(pdf) != HPDF_OK) goto HPDF_Free;
@@ -173,7 +178,7 @@ static ngx_int_t ngx_http_pdf_body_filter(ngx_http_request_t *r, ngx_chain_t *in
                 case NGX_AGAIN: return NGX_OK;
                 case NGX_ERROR: goto ngx_http_filter_finalize_request;
             }
-//            ctx->phase = NGX_HTTP_HTML_PROCESS;
+            ctx->phase = NGX_HTTP_HTML_PROCESS;
         }
         /* fall through */
         case NGX_HTTP_HTML_PROCESS: {
@@ -183,7 +188,7 @@ static ngx_int_t ngx_http_pdf_body_filter(ngx_http_request_t *r, ngx_chain_t *in
             return ngx_http_pdf_html_send(r, &out);
         }
         case NGX_HTTP_HTML_PASS: goto ngx_http_next_body_filter;
-        default: {/* NGX_HTTP_HTML_DONE */ 
+        default: { /* NGX_HTTP_HTML_DONE */ 
             ngx_int_t rc = ngx_http_next_body_filter(r, NULL);
             return (rc == NGX_OK) ? NGX_ERROR : rc;
         }
