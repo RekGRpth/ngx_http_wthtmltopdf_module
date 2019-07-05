@@ -115,6 +115,7 @@ static ngx_buf_t *ngx_http_pdf_html_process(ngx_http_request_t *r) {
     ngx_http_pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_pdf_module);
     HPDF_Doc pdf = HPDF_New(error_handler, r->connection->log);
     if (!pdf) goto ret;
+    if (HPDF_SetCompressionMode(pdf, HPDF_COMP_ALL) != HPDF_OK) goto HPDF_Free;
     if (HPDF_UseUTFEncodings(pdf) != HPDF_OK) goto HPDF_Free;
     HPDF_Page page = HPDF_AddPage(pdf);
     if (!page) goto HPDF_Free;

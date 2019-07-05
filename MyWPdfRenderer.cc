@@ -21,7 +21,7 @@ extern "C" {
     ngx_int_t MyWPdfRenderer_render(ngx_log_t *log, HPDF_Doc pdf, HPDF_Page page, const char *html) {
         try {
             Wt::Render::WPdfRenderer renderer(pdf, page);
-            renderer.setMargin(2.54);
+            renderer.setMargin(1.0);
             renderer.setDpi(96);
             renderer.render(html);
             return NGX_DONE;
