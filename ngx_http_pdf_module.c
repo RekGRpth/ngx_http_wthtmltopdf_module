@@ -126,8 +126,11 @@ static ngx_buf_t *ngx_http_pdf_html_process(ngx_http_request_t *r) {
     if (!size) goto HPDF_Free;
     HPDF_BYTE *buf = ngx_palloc(r->pool, size);
     if (!buf) goto HPDF_Free;
-    HPDF_STATUS hs = HPDF_ReadFromStream(pdf, buf, &size);
-    if (hs != HPDF_OK && hs != HPDF_STREAM_EOF) goto HPDF_Free;
+    switch (HPDF_ReadFromStream(pdf, buf, &size)) {
+        case HPDF_OK: break;
+        case HPDF_STREAM_EOF: break;
+        default: goto HPDF_Free;
+    }
     out = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
     if (!out) goto HPDF_Free;
     out->pos = (u_char *)buf;
