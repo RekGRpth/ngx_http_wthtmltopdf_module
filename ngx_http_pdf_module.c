@@ -138,6 +138,8 @@ static ngx_buf_t *ngx_http_pdf_html_process(ngx_http_request_t *r) {
     r->headers_out.content_length = NULL;
     ngx_http_weak_etag(r);
 HPDF_Free:
+    page = HPDF_GetCurrentPage(pdf);
+    if (page) while (HPDF_Page_GetGStateDepth(page) > 1) HPDF_Page_GRestore(page);
     HPDF_Free(pdf);
 ret:
     return out;
