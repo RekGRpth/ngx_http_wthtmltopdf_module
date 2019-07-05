@@ -125,6 +125,7 @@ static ngx_buf_t *ngx_http_pdf_html_process(ngx_http_request_t *r) {
     HPDF_UINT32 size = HPDF_GetStreamSize(pdf);
     if (!size) goto HPDF_Free;
     HPDF_BYTE *buf = ngx_palloc(r->pool, size);
+    if (!buf) goto HPDF_Free;
     HPDF_STATUS hs = HPDF_ReadFromStream(pdf, buf, &size);
     if (hs != HPDF_OK && hs != HPDF_STREAM_EOF) goto HPDF_Free;
     out = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
