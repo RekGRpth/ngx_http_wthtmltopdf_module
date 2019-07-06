@@ -30,13 +30,13 @@ static ngx_http_output_header_filter_pt ngx_http_next_header_filter;
 static ngx_http_output_body_filter_pt ngx_http_next_body_filter;
 
 static ngx_command_t ngx_http_html2pdf_commands[] = {
-  { .name = ngx_string("pdf"),
+  { .name = ngx_string("html2pdf"),
     .type = NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_FLAG,
     .set = ngx_conf_set_flag_slot,
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
     .offset = offsetof(ngx_http_html2pdf_loc_conf_t, enable),
     .post = NULL },
-  { .name = ngx_string("pdf_buffer_size"),
+  { .name = ngx_string("html2pdf_buffer_size"),
     .type = NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
     .set = ngx_conf_set_size_slot,
     .conf = NGX_HTTP_LOC_CONF_OFFSET,
@@ -62,7 +62,7 @@ static char *ngx_http_html2pdf_merge_loc_conf(ngx_conf_t *cf, void *parent, void
 }
 
 static ngx_int_t ngx_http_html2pdf_header_filter(ngx_http_request_t *r) {
-    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pdf header filter");
+    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html2pdf header filter");
     if (r->headers_out.status == NGX_HTTP_NOT_MODIFIED) goto ngx_http_next_header_filter;
     ngx_http_html2pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_html2pdf_module);
     if (ctx) { ngx_http_set_ctx(r, NULL, ngx_http_html2pdf_module); goto ngx_http_next_header_filter; }
@@ -72,7 +72,7 @@ static ngx_int_t ngx_http_html2pdf_header_filter(ngx_http_request_t *r) {
     if (!ctx) return NGX_ERROR;
     ngx_http_set_ctx(r, ctx, ngx_http_html2pdf_module);
     off_t len = r->headers_out.content_length_n;
-    if (len != -1 && len > (off_t)conf->buffer_size) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "pdf filter: too big response: %O", len); return NGX_HTTP_UNSUPPORTED_MEDIA_TYPE; }
+    if (len != -1 && len > (off_t)conf->buffer_size) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "html2pdf filter: too big response: %O", len); return NGX_HTTP_UNSUPPORTED_MEDIA_TYPE; }
     ctx->len = len == -1 ? conf->buffer_size : (size_t) len;
     if (r->headers_out.refresh) r->headers_out.refresh->hash = 0;
     r->main_filter_need_in_memory = 1;
@@ -83,7 +83,7 @@ ngx_http_next_header_filter:
 }
 
 static ngx_int_t ngx_http_html2pdf_html_read(ngx_http_request_t *r, ngx_chain_t *in) {
-    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pdf html read");
+    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html2pdf html read");
     ngx_http_html2pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_html2pdf_module);
     if (!ctx->data) {
         ctx->data = ngx_pcalloc(r->pool, ctx->len + 1);
@@ -93,9 +93,9 @@ static ngx_int_t ngx_http_html2pdf_html_read(ngx_http_request_t *r, ngx_chain_t 
     for (ngx_chain_t *cl = in; cl; cl = cl->next) {
         ngx_buf_t *b = cl->buf;
         size_t size = ngx_buf_size(b);
-        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html size = %uz", size);
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html2pdf size = %uz", size);
         size_t rest = ctx->data + ctx->len - ctx->last;
-        if (size > rest) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "pdf filter: too big response"); return NGX_ERROR; }
+        if (size > rest) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "html2pdf filter: too big response"); return NGX_ERROR; }
         ctx->last = ngx_cpymem(ctx->last, b->pos, size);
         if (b->last_buf) return NGX_OK;
     }
@@ -109,7 +109,7 @@ static void HPDF_STDCALL error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_
 }
 
 static ngx_buf_t *ngx_http_html2pdf_html_process(ngx_http_request_t *r) {
-    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pdf html process");
+    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html2pdf html process");
     r->connection->buffered &= ~NGX_HTTP_HTML_BUFFERED;
     ngx_buf_t *out = NULL;
     ngx_http_html2pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_html2pdf_module);
@@ -150,7 +150,7 @@ ret:
 }
 
 static ngx_int_t ngx_http_html2pdf_html_send(ngx_http_request_t *r, ngx_chain_t *in) {
-    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pdf html send");
+    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html2pdf html send");
     ngx_int_t rc = ngx_http_next_header_filter(r);
     if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) return NGX_ERROR;
     rc = ngx_http_next_body_filter(r, in);
@@ -160,7 +160,7 @@ static ngx_int_t ngx_http_html2pdf_html_send(ngx_http_request_t *r, ngx_chain_t 
 }
 
 static ngx_int_t ngx_http_html2pdf_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
-    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "pdf body filter");
+    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html2pdf body filter");
     if (!in) goto ngx_http_next_body_filter;
     ngx_http_html2pdf_ctx_t *ctx = ngx_http_get_module_ctx(r, ngx_http_html2pdf_module);
     if (!ctx) goto ngx_http_next_body_filter;
