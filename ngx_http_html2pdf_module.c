@@ -57,7 +57,7 @@ static char *ngx_http_html2pdf_merge_loc_conf(ngx_conf_t *cf, void *parent, void
     ngx_http_html2pdf_loc_conf_t *prev = parent;
     ngx_http_html2pdf_loc_conf_t *conf = child;
     ngx_conf_merge_value(conf->enable, prev->enable, 0);
-    ngx_conf_merge_size_value(conf->buffer_size, prev->buffer_size, (size_t)ngx_pagesize);
+    ngx_conf_merge_size_value(conf->buffer_size, prev->buffer_size, NGX_CONF_UNSET_SIZE);
     return NGX_CONF_OK;
 }
 
@@ -72,7 +72,8 @@ static ngx_int_t ngx_http_html2pdf_header_filter(ngx_http_request_t *r) {
     if (!ctx) return NGX_ERROR;
     ngx_http_set_ctx(r, ctx, ngx_http_html2pdf_module);
     off_t len = r->headers_out.content_length_n;
-    if (len != -1 && len > (off_t)conf->buffer_size) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "html2pdf filter: too big response: %O", len); return NGX_HTTP_UNSUPPORTED_MEDIA_TYPE; }
+    if (len != -1 && conf->buffer_size != NGX_CONF_UNSET_SIZE && len > (off_t)conf->buffer_size) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "html2pdf filter: too big response: %O", len); return NGX_HTTP_UNSUPPORTED_MEDIA_TYPE; }
+    if (len == -1 && conf->buffer_size == NGX_CONF_UNSET_SIZE) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "html2pdf filter: buffered not specified for unknown response length"); return NGX_HTTP_UNSUPPORTED_MEDIA_TYPE; }
     ctx->len = len == -1 ? conf->buffer_size : (size_t) len;
     if (r->headers_out.refresh) r->headers_out.refresh->hash = 0;
     r->main_filter_need_in_memory = 1;
