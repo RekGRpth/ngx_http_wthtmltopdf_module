@@ -57,6 +57,7 @@ HPDF_Free:
         r->headers_out.content_length_n = len;
         rc = ngx_http_send_header(r);
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "rc = %i", rc);
+        ngx_http_weak_etag(r);
         if (rc == NGX_ERROR || rc > NGX_OK || r->header_only); else rc = ngx_http_output_filter(r, &ch);
     }
 ret:
