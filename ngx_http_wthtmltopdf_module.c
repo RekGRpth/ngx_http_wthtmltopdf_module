@@ -21,7 +21,7 @@ static ngx_int_t ngx_http_wthtmltopdf_handler(ngx_http_request_t *r) {
     ngx_int_t rc = ngx_http_discard_request_body(r);
     if (rc != NGX_OK && rc != NGX_AGAIN) return rc;
     ngx_http_wthtmltopdf_loc_conf_t *conf = ngx_http_get_module_loc_conf(r, ngx_http_wthtmltopdf_module);
-    rc = NGX_ERROR;
+    rc = NGX_HTTP_INTERNAL_SERVER_ERROR;
     ngx_str_t value, out = {0, NULL};
     if (ngx_http_complex_value(r, conf->html, &value) != NGX_OK) { ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "ngx_http_complex_value != NGX_OK"); goto ret; }
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "html = %V", &value);
